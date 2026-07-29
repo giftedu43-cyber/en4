@@ -53,7 +53,7 @@
       </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="주요 메뉴"><button class="nav-item active" id="navHome">⌂<span>홈</span></button><button class="nav-item route-nav" id="navRoute">⌁<span>루트</span></button></nav>
+    <nav class="bottom-nav" aria-label="주요 메뉴"><button class="nav-item active" id="navHome">⌂<span>홈</span></button><button class="nav-item route-nav" id="navRoute">⌁<span>루트</span></button><button class="nav-item" id="navProfile">◯<span>프로필</span></button></nav>
 
     <div class="modal-backdrop navigation-backdrop" id="modalBackdrop" hidden>
       <section class="modal navigation-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -78,6 +78,17 @@
         <div class="map-demo builder-map" id="builderMap" aria-label="루트 작성용 OpenStreetMap"></div>
         <p class="selected-route" id="selectedCustomRoute">아직 선택한 지점이 없어요.</p>
         <button class="primary-button full" id="previewCustomRoute">내 루트 미리보기</button>
+      </section>
+    </div>
+    <div class="modal-backdrop navigation-backdrop" id="profileBackdrop" hidden>
+      <section class="modal profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+        <button class="close-button" id="closeProfile" aria-label="닫기">×</button>
+        <p class="eyebrow">MY SEA-WALL</p>
+        <h2 id="profileTitle">탐방자 프로필</h2>
+        <p class="modal-copy">부산의 새로운 해안길을 발견하는 중이에요.</p>
+        <div class="profile-stats"><div><b id="profilePoints">0P</b><span>보유 포인트 <small>(예시)</small></span></div><div><b id="profileRouteCount">0</b><span>완주 루트</span></div></div>
+        <section class="activity-section"><h3>내 활동</h3><ul id="activityList"><li>아직 완주한 루트가 없어요.</li></ul></section>
+        <button class="exchange-button" id="exchangePoints"><span>🎟</span><span><b>지역 상권 혜택으로 교환하기</b><small>실제 지역화폐·제휴 상점 연동 전의 프로토타입 예시</small></span><em>→</em></button>
       </section>
     </div>
     <div class="quiz-backdrop" id="quizBackdrop">

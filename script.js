@@ -69,6 +69,7 @@ const customSpots = [
 const routeList = document.getElementById("routeList");
 const modal = document.getElementById("modalBackdrop");
 const builderBackdrop = document.getElementById("builderBackdrop");
+const profileBackdrop = document.getElementById("profileBackdrop");
 const quiz = document.getElementById("quizBackdrop");
 let activeTaste = "food";
 let currentStep = 0;
@@ -82,6 +83,8 @@ let userLocationMarker = null;
 let builderMap = null;
 let builderLayer = null;
 let selectedCustomSpotIds = [];
+let points = Number(localStorage.getItem("seaWallPoints") || 0);
+let activityHistory = JSON.parse(localStorage.getItem("seaWallActivities") || "[]");
 let scores = { food: 0, view: 0, quiet: 0, photo: 0 };
 
 function dailyRoutes(taste) {
@@ -195,6 +198,16 @@ function renderBuilderSpots() {
 }
 function openBuilder() { selectedCustomSpotIds = []; builderBackdrop.hidden = false; document.body.style.overflow = "hidden"; renderBuilderSpots(); }
 function closeBuilder() { builderBackdrop.hidden = true; document.body.style.overflow = ""; }
+function saveActivity() { localStorage.setItem("seaWallPoints", String(points)); localStorage.setItem("seaWallActivities", JSON.stringify(activityHistory)); }
+function updateProfile() {
+  document.getElementById("profilePoints").textContent = `${points}P`;
+  document.getElementById("profileRouteCount").textContent = activityHistory.length;
+  const list = document.getElementById("activityList");
+  list.innerHTML = activityHistory.length ? activityHistory.slice(0, 4).map(activity => `<li>✓ ${activity} 완주 <span class="demo-label inline">+100P 예시</span></li>`).join("") : "<li>아직 완주한 루트가 없어요.</li>";
+}
+function openProfile() { updateProfile(); profileBackdrop.hidden = false; document.body.style.overflow = "hidden"; }
+function closeProfile() { profileBackdrop.hidden = true; document.body.style.overflow = ""; }
+function awardRoutePoints(routeName) { points += 100; activityHistory.unshift(routeName); saveActivity(); updateProfile(); showNotice(`${routeName} 완주! +100P를 받았어요. (예시)`); }
 function previewCustomRoute() {
   if (selectedCustomSpotIds.length < 2) { showNotice("지점을 두 곳 이상 선택해 주세요."); return; }
   const selectedSpots = selectedCustomSpotIds.map(id => customSpots.find(spot => spot.id === id));
@@ -219,6 +232,7 @@ document.getElementById("viewResultRoutes").addEventListener("click", () => { qu
 document.getElementById("homeButton").addEventListener("click", goHome);
 document.getElementById("navHome").addEventListener("click", goHome);
 document.getElementById("navRoute").addEventListener("click", () => document.getElementById("routes").scrollIntoView({ behavior: "smooth" }));
+document.getElementById("navProfile").addEventListener("click", openProfile);
 document.getElementById("aiRecommendButton").addEventListener("click", () => {
   const button = document.getElementById("aiRecommendButton");
   const result = document.getElementById("aiResult");
@@ -242,10 +256,14 @@ document.getElementById("routeMakerButton").addEventListener("click", openBuilde
 document.getElementById("closeBuilder").addEventListener("click", closeBuilder);
 builderBackdrop.addEventListener("click", event => { if (event.target === builderBackdrop) closeBuilder(); });
 document.getElementById("previewCustomRoute").addEventListener("click", previewCustomRoute);
+document.getElementById("closeProfile").addEventListener("click", closeProfile);
+profileBackdrop.addEventListener("click", event => { if (event.target === profileBackdrop) closeProfile(); });
+document.getElementById("exchangePoints").addEventListener("click", () => showNotice("지역 상권 혜택 교환은 프로토타입 예시입니다."));
 document.getElementById("showMyLocation").addEventListener("click", showMyLocation);
 document.getElementById("closeModal").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
-document.getElementById("completeRoute").addEventListener("click", () => { const lastStep = routeStops[activeRoute.name].length - 2; if (currentStep < lastStep) { currentStep += 1; updateNavigation(); } else { showNotice(`${activeRoute.name} 루트를 완주했어요!`); closeModal(); } });
+document.getElementById("completeRoute").addEventListener("click", () => { const lastStep = routeStops[activeRoute.name].length - 2; if (currentStep < lastStep) { currentStep += 1; updateNavigation(); } else { awardRoutePoints(activeRoute.name); closeModal(); } });
 document.querySelectorAll(".taste-tab").forEach(tab => tab.addEventListener("click", () => { activeTaste = tab.dataset.taste; aiRouteIndex = 0; aiRecommendedRouteName = null; document.getElementById("aiResult").hidden = true; document.querySelectorAll(".taste-tab").forEach(item => item.classList.toggle("active", item === tab)); renderRoutes(); }));
 document.getElementById("storyButton").addEventListener("click", () => showNotice("AR 도슨트는 다음 단계에서 연결할 기능이에요."));
+updateProfile();
 renderRoutes();
