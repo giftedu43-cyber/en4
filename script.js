@@ -159,7 +159,7 @@ function updateNavigation() {
   document.getElementById("navPlace").textContent = stops[currentStep];
   document.getElementById("navDescription").innerHTML = `${currentStep === 2 ? "가상의 로컬 탐방 지점도 함께 둘러보세요." : "해안길을 따라 탐방 지점으로 이동하세요."} <span class="demo-label inline">예시 안내</span>`;
   document.getElementById("gpsNote").textContent = "위치 권한을 허용하면 현재 위치를 지도에 표시합니다. 위치는 저장하지 않습니다.";
-  document.getElementById("completeRoute").textContent = currentStep === stops.length - 1 ? "루트 완주하고 100P 받기" : "네이버지도 웹에서 다음 지점 도보 안내";
+  document.getElementById("completeRoute").textContent = currentStep === stops.length - 1 ? "루트 완주하고 100P 받기" : "길찾기";
   renderRouteMap();
 }
 
