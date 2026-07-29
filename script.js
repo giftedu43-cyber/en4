@@ -79,6 +79,8 @@ let activeRoute = null;
 let routeMap = null;
 let routeLayer = null;
 let userLocationMarker = null;
+let builderMap = null;
+let builderLayer = null;
 let selectedCustomSpotIds = [];
 let scores = { food: 0, view: 0, quiet: 0, photo: 0 };
 
@@ -160,19 +162,36 @@ function updateNavigation() {
 
 function openNavigation(route = dailyRoutes(activeTaste)[0]) { activeRoute = route; currentStep = 0; modal.hidden = false; document.body.style.overflow = "hidden"; updateNavigation(); }
 function closeModal() { modal.hidden = true; document.body.style.overflow = ""; }
-function renderBuilderSpots() {
-  const container = document.getElementById("builderSpots");
-  container.innerHTML = customSpots.map(spot => {
+function ensureBuilderMap() {
+  if (!window.L) return false;
+  if (!builderMap) {
+    builderMap = L.map("builderMap", { zoomControl: false });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors" }).addTo(builderMap);
+    L.control.zoom({ position: "bottomright" }).addTo(builderMap);
+  }
+  return true;
+}
+function renderBuilderMap() {
+  if (!ensureBuilderMap()) return;
+  if (builderLayer) builderLayer.remove();
+  builderLayer = L.layerGroup().addTo(builderMap);
+  customSpots.forEach(spot => {
     const order = selectedCustomSpotIds.indexOf(spot.id);
-    return `<button data-id="${spot.id}" class="${order >= 0 ? "selected" : ""}">${order >= 0 ? `<b>${order + 1}</b>` : "<b>＋</b>"}<span>${spot.name}</span><small>${order >= 0 ? "선택됨" : "선택"}</small></button>`;
-  }).join("");
+    const icon = L.divIcon({ className: "", html: `<span class="builder-marker ${order >= 0 ? "selected" : ""}">${order >= 0 ? order + 1 : "＋"}</span>`, iconSize: [31, 31], iconAnchor: [15, 15] });
+    L.marker(spot.coordinates, { icon }).bindTooltip(spot.name, { direction: "top" }).on("click", () => {
+      selectedCustomSpotIds = selectedCustomSpotIds.includes(spot.id) ? selectedCustomSpotIds.filter(item => item !== spot.id) : [...selectedCustomSpotIds, spot.id];
+      renderBuilderSpots();
+    }).addTo(builderLayer);
+  });
+  const selectedCoordinates = selectedCustomSpotIds.map(id => customSpots.find(spot => spot.id === id).coordinates);
+  if (selectedCoordinates.length > 1) L.polyline(selectedCoordinates, { color: "#f16e52", weight: 4, dashArray: "7 6" }).addTo(builderLayer);
+  builderMap.setView([35.125, 129.090], 11);
+  setTimeout(() => builderMap.invalidateSize(), 50);
+}
+function renderBuilderSpots() {
   const selectedNames = selectedCustomSpotIds.map(id => customSpots.find(spot => spot.id === id).name);
   document.getElementById("selectedCustomRoute").textContent = selectedNames.length ? `나의 루트: ${selectedNames.join(" → ")}` : "아직 선택한 지점이 없어요.";
-  container.querySelectorAll("button").forEach(button => button.addEventListener("click", () => {
-    const id = button.dataset.id;
-    selectedCustomSpotIds = selectedCustomSpotIds.includes(id) ? selectedCustomSpotIds.filter(item => item !== id) : [...selectedCustomSpotIds, id];
-    renderBuilderSpots();
-  }));
+  renderBuilderMap();
 }
 function openBuilder() { selectedCustomSpotIds = []; builderBackdrop.hidden = false; document.body.style.overflow = "hidden"; renderBuilderSpots(); }
 function closeBuilder() { builderBackdrop.hidden = true; document.body.style.overflow = ""; }
