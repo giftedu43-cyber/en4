@@ -159,19 +159,15 @@ function updateNavigation() {
   document.getElementById("navPlace").textContent = stops[currentStep];
   document.getElementById("navDescription").innerHTML = `${currentStep === 2 ? "가상의 로컬 탐방 지점도 함께 둘러보세요." : "해안길을 따라 탐방 지점으로 이동하세요."} <span class="demo-label inline">예시 안내</span>`;
   document.getElementById("gpsNote").textContent = "위치 권한을 허용하면 현재 위치를 지도에 표시합니다. 위치는 저장하지 않습니다.";
-  document.getElementById("completeRoute").textContent = currentStep === stops.length - 1 ? "루트 완주하고 100P 받기" : "네이버지도로 다음 지점 도보 안내";
+  document.getElementById("completeRoute").textContent = currentStep === stops.length - 1 ? "루트 완주하고 100P 받기" : "네이버지도 웹에서 다음 지점 도보 안내";
   renderRouteMap();
 }
 
 function openNaverWalkingGuide(origin, destination, originName, destinationName) {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (!isMobile) {
-    showNotice("네이버지도 도보 안내는 네이버지도 앱이 설치된 휴대폰에서 열립니다.");
-    return;
-  }
-  const appName = encodeURIComponent(window.location.origin || "busan-sea-wall-trail");
-  const guideLink = `nmap://route/walk?slat=${origin[0]}&slng=${origin[1]}&sname=${encodeURIComponent(originName)}&dlat=${destination[0]}&dlng=${destination[1]}&dname=${encodeURIComponent(destinationName)}&appname=${appName}`;
-  window.location.href = guideLink;
+  const originPath = encodeURIComponent(`${origin[1]},${origin[0]},${originName},undefined,ADDRESS_POI`);
+  const destinationPath = encodeURIComponent(`${destination[1]},${destination[0]},${destinationName},undefined,ADDRESS_POI`);
+  const guideLink = `https://qp.map.naver.com/end-quick-path/${originPath}/${destinationPath}/-/walk/1?nscs=0`;
+  window.open(guideLink, "_blank", "noopener");
 }
 
 function openNavigation(route = dailyRoutes(activeTaste)[0]) { activeRoute = route; currentStep = 0; modal.hidden = false; document.body.style.overflow = "hidden"; updateNavigation(); }
