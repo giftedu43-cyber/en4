@@ -53,14 +53,6 @@ const routeMapCoordinates = {
   "광안대교 빛 포인트 루트": [[35.1537000, 129.1265000], [35.1456901, 129.1283872], [35.1500000, 129.1225000], [35.1508879, 129.1167806]],
   "영도 골목과 바다 프레임": [[35.0786000, 129.0458000], [35.0777551, 129.0452591], [35.0769000, 129.0447000], [35.0759000, 129.0450000]]
 };
-const routeGuideLinks = {
-  "송도 바다식탁 산책": [
-    "https://maps.app.goo.gl/pvzmGnbjK98UZQX89",
-    "https://maps.app.goo.gl/aVQPhCApd9DfP1WQ6",
-    "https://maps.app.goo.gl/EAcbSNYFMB7NT2FN9",
-    "https://maps.app.goo.gl/RFWPGF53vM2muvsFA"
-  ]
-};
 const customSpots = [
   { id: "centum", name: "센텀시티", coordinates: [35.1685922, 129.1312167] },
   { id: "marine", name: "마린시티", coordinates: [35.1568517, 129.1414591] },
@@ -272,8 +264,13 @@ document.getElementById("closeModal").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
 document.getElementById("completeRoute").addEventListener("click", () => {
   const stops = routeStops[activeRoute.name];
-  const guideLink = routeGuideLinks[activeRoute.name]?.[currentStep];
-  if (guideLink) window.open(guideLink, "_blank", "noopener");
+  const coordinates = routeCoordinates(activeRoute.name);
+  if (currentStep < stops.length - 1) {
+    const [originLat, originLng] = coordinates[currentStep];
+    const [destinationLat, destinationLng] = coordinates[currentStep + 1];
+    const guideLink = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destinationLat},${destinationLng}&travelmode=walking`;
+    window.open(guideLink, "_blank", "noopener");
+  }
   if (currentStep < stops.length - 1) { currentStep += 1; updateNavigation(); } else { awardRoutePoints(activeRoute.name); closeModal(); }
 });
 document.querySelectorAll(".taste-tab").forEach(tab => tab.addEventListener("click", () => { activeTaste = tab.dataset.taste; aiRouteIndex = 0; aiRecommendedRouteName = null; document.getElementById("aiResult").hidden = true; document.querySelectorAll(".taste-tab").forEach(item => item.classList.toggle("active", item === tab)); renderRoutes(); }));
