@@ -53,6 +53,14 @@ const routeMapCoordinates = {
   "광안대교 빛 포인트 루트": [[35.1537000, 129.1265000], [35.1456901, 129.1283872], [35.1500000, 129.1225000], [35.1508879, 129.1167806]],
   "영도 골목과 바다 프레임": [[35.0786000, 129.0458000], [35.0777551, 129.0452591], [35.0769000, 129.0447000], [35.0759000, 129.0450000]]
 };
+const routeGuideLinks = {
+  "송도 바다식탁 산책": [
+    "https://maps.app.goo.gl/pvzmGnbjK98UZQX89",
+    "https://maps.app.goo.gl/aVQPhCApd9DfP1WQ6",
+    "https://maps.app.goo.gl/EAcbSNYFMB7NT2FN9",
+    "https://maps.app.goo.gl/RFWPGF53vM2muvsFA"
+  ]
+};
 const customSpots = [
   { id: "centum", name: "센텀시티", coordinates: [35.1685922, 129.1312167] },
   { id: "marine", name: "마린시티", coordinates: [35.1568517, 129.1414591] },
@@ -131,7 +139,7 @@ function renderRouteMap() {
   routeLayer = L.layerGroup().addTo(routeMap);
   L.polyline(coordinates, { color: "#087fa2", weight: 5, dashArray: "8 7" }).addTo(routeLayer);
   coordinates.forEach((coordinate, index) => {
-    const icon = L.divIcon({ className: "", html: `<span class="route-marker ${index === currentStep + 1 ? "active" : ""}">${index + 1}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+    const icon = L.divIcon({ className: "", html: `<span class="route-marker ${index === currentStep ? "active" : ""}">${index + 1}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] });
     L.marker(coordinate, { icon }).bindPopup(`<b>${stops[index]}</b><br><small>프로토타입 예시 탐방 지점</small>`).addTo(routeLayer);
   });
   routeMap.fitBounds(coordinates, { padding: [25, 25] });
@@ -156,10 +164,10 @@ function showMyLocation() {
 function updateNavigation() {
   const stops = routeStops[activeRoute.name];
   document.getElementById("modalTitle").textContent = activeRoute.name;
-  document.getElementById("navPlace").textContent = stops[currentStep + 1];
-  document.getElementById("navDescription").innerHTML = `${currentStep === 1 ? "가상의 로컬 탐방 지점도 함께 둘러보세요." : "해안길을 따라 다음 탐방 지점으로 이동하세요."} <span class="demo-label inline">예시 안내</span>`;
+  document.getElementById("navPlace").textContent = stops[currentStep];
+  document.getElementById("navDescription").innerHTML = `${currentStep === 2 ? "가상의 로컬 탐방 지점도 함께 둘러보세요." : "해안길을 따라 탐방 지점으로 이동하세요."} <span class="demo-label inline">예시 안내</span>`;
   document.getElementById("gpsNote").textContent = "위치 권한을 허용하면 현재 위치를 지도에 표시합니다. 위치는 저장하지 않습니다.";
-  document.getElementById("completeRoute").textContent = currentStep === stops.length - 2 ? "루트 완주하기" : "다음 지점으로 안내받기";
+  document.getElementById("completeRoute").textContent = currentStep === stops.length - 1 ? "루트 완주하고 100P 받기" : "다음 지점으로 안내받기";
   renderRouteMap();
 }
 
@@ -262,7 +270,12 @@ document.getElementById("exchangePoints").addEventListener("click", () => showNo
 document.getElementById("showMyLocation").addEventListener("click", showMyLocation);
 document.getElementById("closeModal").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
-document.getElementById("completeRoute").addEventListener("click", () => { const lastStep = routeStops[activeRoute.name].length - 2; if (currentStep < lastStep) { currentStep += 1; updateNavigation(); } else { awardRoutePoints(activeRoute.name); closeModal(); } });
+document.getElementById("completeRoute").addEventListener("click", () => {
+  const stops = routeStops[activeRoute.name];
+  const guideLink = routeGuideLinks[activeRoute.name]?.[currentStep];
+  if (guideLink) window.open(guideLink, "_blank", "noopener");
+  if (currentStep < stops.length - 1) { currentStep += 1; updateNavigation(); } else { awardRoutePoints(activeRoute.name); closeModal(); }
+});
 document.querySelectorAll(".taste-tab").forEach(tab => tab.addEventListener("click", () => { activeTaste = tab.dataset.taste; aiRouteIndex = 0; aiRecommendedRouteName = null; document.getElementById("aiResult").hidden = true; document.querySelectorAll(".taste-tab").forEach(item => item.classList.toggle("active", item === tab)); renderRoutes(); }));
 document.getElementById("storyButton").addEventListener("click", () => showNotice("AR 도슨트는 다음 단계에서 연결할 기능이에요."));
 updateProfile();
