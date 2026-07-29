@@ -53,9 +53,22 @@ const routeMapCoordinates = {
   "광안대교 빛 포인트 루트": [[35.1537000, 129.1265000], [35.1456901, 129.1283872], [35.1500000, 129.1225000], [35.1508879, 129.1167806]],
   "영도 골목과 바다 프레임": [[35.0786000, 129.0458000], [35.0777551, 129.0452591], [35.0769000, 129.0447000], [35.0759000, 129.0450000]]
 };
+const customSpots = [
+  { id: "centum", name: "센텀시티", coordinates: [35.1685922, 129.1312167] },
+  { id: "marine", name: "마린시티", coordinates: [35.1568517, 129.1414591] },
+  { id: "gwangan", name: "광안리 해변", coordinates: [35.1508879, 129.1167806] },
+  { id: "millak", name: "민락수변공원", coordinates: [35.1537000, 129.1265000] },
+  { id: "dongbaek", name: "동백섬", coordinates: [35.1540639, 129.1520862] },
+  { id: "haeundae", name: "해운대 해변", coordinates: [35.1577809, 129.1581318] },
+  { id: "yeongdo", name: "흰여울 문화마을", coordinates: [35.0777551, 129.0452591] },
+  { id: "songdo", name: "송도해수욕장", coordinates: [35.0762386, 129.0159987] },
+  { id: "amnam", name: "암남공원", coordinates: [35.0580746, 129.0152920] },
+  { id: "northport", name: "북항 친수공원", coordinates: [35.1144000, 129.0464000] }
+];
 
 const routeList = document.getElementById("routeList");
 const modal = document.getElementById("modalBackdrop");
+const builderBackdrop = document.getElementById("builderBackdrop");
 const quiz = document.getElementById("quizBackdrop");
 let activeTaste = "food";
 let currentStep = 0;
@@ -66,6 +79,7 @@ let activeRoute = null;
 let routeMap = null;
 let routeLayer = null;
 let userLocationMarker = null;
+let selectedCustomSpotIds = [];
 let scores = { food: 0, view: 0, quiet: 0, photo: 0 };
 
 function dailyRoutes(taste) {
@@ -146,6 +160,31 @@ function updateNavigation() {
 
 function openNavigation(route = dailyRoutes(activeTaste)[0]) { activeRoute = route; currentStep = 0; modal.hidden = false; document.body.style.overflow = "hidden"; updateNavigation(); }
 function closeModal() { modal.hidden = true; document.body.style.overflow = ""; }
+function renderBuilderSpots() {
+  const container = document.getElementById("builderSpots");
+  container.innerHTML = customSpots.map(spot => {
+    const order = selectedCustomSpotIds.indexOf(spot.id);
+    return `<button data-id="${spot.id}" class="${order >= 0 ? "selected" : ""}">${order >= 0 ? `<b>${order + 1}</b>` : "<b>＋</b>"}<span>${spot.name}</span><small>${order >= 0 ? "선택됨" : "선택"}</small></button>`;
+  }).join("");
+  const selectedNames = selectedCustomSpotIds.map(id => customSpots.find(spot => spot.id === id).name);
+  document.getElementById("selectedCustomRoute").textContent = selectedNames.length ? `나의 루트: ${selectedNames.join(" → ")}` : "아직 선택한 지점이 없어요.";
+  container.querySelectorAll("button").forEach(button => button.addEventListener("click", () => {
+    const id = button.dataset.id;
+    selectedCustomSpotIds = selectedCustomSpotIds.includes(id) ? selectedCustomSpotIds.filter(item => item !== id) : [...selectedCustomSpotIds, id];
+    renderBuilderSpots();
+  }));
+}
+function openBuilder() { selectedCustomSpotIds = []; builderBackdrop.hidden = false; document.body.style.overflow = "hidden"; renderBuilderSpots(); }
+function closeBuilder() { builderBackdrop.hidden = true; document.body.style.overflow = ""; }
+function previewCustomRoute() {
+  if (selectedCustomSpotIds.length < 2) { showNotice("지점을 두 곳 이상 선택해 주세요."); return; }
+  const selectedSpots = selectedCustomSpotIds.map(id => customSpots.find(spot => spot.id === id));
+  const customRouteName = "나만의 해안 루트";
+  routeStops[customRouteName] = selectedSpots.map(spot => spot.name);
+  routeMapCoordinates[customRouteName] = selectedSpots.map(spot => spot.coordinates);
+  closeBuilder();
+  openNavigation({ name: customRouteName, detail: "직접 선택한 탐방 지점을 잇는 루트", meta: selectedSpots.map(spot => spot.name).join(" → "), icon: "🧭" });
+}
 function showNotice(message) { const notice = document.createElement("div"); notice.className = "notice"; notice.textContent = message; document.body.append(notice); setTimeout(() => notice.remove(), 2400); }
 function goHome() { window.scrollTo({ top: 0, behavior: "smooth" }); }
 function showQuiz() { quiz.hidden = false; document.getElementById("quizIntro").hidden = false; document.getElementById("quizQuestions").hidden = true; document.getElementById("quizResult").hidden = true; }
@@ -180,7 +219,10 @@ document.getElementById("aiRecommendButton").addEventListener("click", () => {
     showNotice(`${tasteNames[activeTaste]}을 추천했어요!`);
   }, 550);
 });
-document.getElementById("routeMakerButton").addEventListener("click", () => openNavigation());
+document.getElementById("routeMakerButton").addEventListener("click", openBuilder);
+document.getElementById("closeBuilder").addEventListener("click", closeBuilder);
+builderBackdrop.addEventListener("click", event => { if (event.target === builderBackdrop) closeBuilder(); });
+document.getElementById("previewCustomRoute").addEventListener("click", previewCustomRoute);
 document.getElementById("showMyLocation").addEventListener("click", showMyLocation);
 document.getElementById("closeModal").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
