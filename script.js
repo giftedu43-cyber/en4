@@ -19,6 +19,7 @@ const routeSets = {
 
 const tasteNames = { food: "맛집 탐방형", view: "바다 뷰형", quiet: "조용한 산책형", photo: "사진 명소형" };
 const tasteDescriptions = { food: "바다를 따라 걷고, 동네의 새로운 맛을 발견하는 여행을 좋아해요.", view: "탁 트인 바다와 도시의 빛이 만드는 풍경을 가장 좋아해요.", quiet: "사람이 비교적 적은 길에서 천천히 바다를 만나는 여행을 좋아해요.", photo: "특별한 풍경을 사진으로 남기며 여행의 순간을 기록하는 것을 좋아해요." };
+const explorationReasons = { food: "오늘은 바다 풍경과 함께 새로운 동네의 맛을 발견하는 코스를 제안해요.", view: "오늘은 부산 바다와 도시의 빛이 만나는 풍경을 즐겨 보세요.", quiet: "오늘은 조금 더 천천히, 여유로운 해안길을 걸어 보는 건 어때요?", photo: "오늘은 기억에 남을 바다 풍경을 사진으로 남기기 좋은 코스예요." };
 const questions = [
   ["부산에서 가장 기대하는 순간은?", ["바다 근처의 맛있는 한 끼", "탁 트인 바다 풍경"]],
   ["걷다가 쉬고 싶을 때는?", ["조용한 벤치에서 쉬고 싶어요", "예쁜 사진을 남기고 싶어요"]],
@@ -158,17 +159,19 @@ document.getElementById("aiRecommendButton").addEventListener("click", () => {
   const button = document.getElementById("aiRecommendButton");
   const result = document.getElementById("aiResult");
   button.disabled = true;
-  button.querySelector("b").textContent = "AI가 내 취향을 분석하는 중…";
+  button.querySelector("b").textContent = "AI가 오늘의 새로운 취향을 고르는 중…";
   setTimeout(() => {
-    aiRouteIndex += 1;
-    const route = dailyRoutes(activeTaste)[aiRouteIndex % dailyRoutes(activeTaste).length];
-    aiRecommendedRouteName = route.name;
-    result.textContent = `프로토타입 추천 이유: ${tasteDescriptions[activeTaste]}`;
+    const otherTastes = Object.keys(tasteNames).filter(taste => taste !== activeTaste);
+    activeTaste = otherTastes[Math.floor(Math.random() * otherTastes.length)];
+    aiRouteIndex = Math.floor(Math.random() * dailyRoutes(activeTaste).length);
+    aiRecommendedRouteName = null;
+    document.querySelectorAll(".taste-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.taste === activeTaste));
+    result.textContent = `프로토타입 추천 · 오늘은 ${tasteNames[activeTaste]}! ${explorationReasons[activeTaste]}`;
     result.hidden = false;
     button.disabled = false;
     button.querySelector("b").textContent = "AI에게 새 루트 추천받기";
     renderRoutes();
-    showNotice("새 예시 루트를 추천했어요!");
+    showNotice(`${tasteNames[activeTaste]}을 추천했어요!`);
   }, 550);
 });
 document.getElementById("routeMakerButton").addEventListener("click", () => openNavigation());
